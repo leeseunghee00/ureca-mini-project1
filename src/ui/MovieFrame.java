@@ -14,169 +14,194 @@ import dao.UserDao;
 import entity.Movie;
 import entity.Review;
 import entity.User;
-import ui.dialog.movie.EditMovieDialog;
-import ui.dialog.movie.MovieDetailDialog;
-import ui.dialog.movie.RegisterMovieDialog;
-import ui.dialog.user.SignupDialog;
-import ui.panel.ButtonPanel;
-import ui.panel.SearchPanel;
+import ui.dialog.review.EditReviewDialog;
+import ui.dialog.review.WriteReviewDialog;
+import ui.panel.ReviewPanel;
 
 /**
- * 영화 UI
+ * 영화 상세 조회 (사용자)
  */
 public class MovieFrame extends JFrame {
 
-	private static JTable table;
-	private static DefaultTableModel tableModel;
+	private JTable movieTable;
+	private DefaultTableModel movieTableModel;
+	private JTable reviewTable;
+	private DefaultTableModel reviewTableModel;
 	private final MovieDao movieDao = new MovieDao();
 	private final ReviewDao reviewDao = new ReviewDao();
 	private final UserDao userDao = new UserDao();
 
-	public MovieFrame() {
-		setTitle("🎬 Movie 🍿");
-		setSize(600, 400);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	public MovieFrame(int movieId) {
+		setTitle("영화 상세 조회");
+		setSize(800, 600);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setLocationRelativeTo(null);
 
 		initComponents();
+		showMovieDetail(movieId);
 		addEventListeners();
-		movieList();
 	}
 
 	private void initComponents() {
-		tableModel = new DefaultTableModel(new Object[]{"ID", "제목", "장르", "영화감독", "개봉연도"}, 0) {
+		// Layouts
+		setLayout(new BorderLayout());
+
+		// Movie Panel
+		JPanel moviePanel = new JPanel(new BorderLayout());
+		moviePanel.add(new JLabel("🍿 영화 정보", SwingConstants.CENTER), BorderLayout.NORTH);
+
+		// Movie Table
+		movieTableModel = new DefaultTableModel(new Object[]{"영화 ID", "영화 제목", "장르", "감독", "개봉일자"}, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
 			}
 		};
+		movieTable = new JTable(movieTableModel);
+		moviePanel.add(new JScrollPane(movieTable), BorderLayout.CENTER);
 
-		table = new JTable(tableModel);
+		// Review Panel
+		JPanel reviewPanel = new JPanel(new BorderLayout());
+		reviewPanel.add(new JLabel("🤍 영화 리뷰 🤍", SwingConstants.CENTER), BorderLayout.NORTH);
 
-		// Search Panel
-		SearchPanel searchPanel = new SearchPanel(this);
+		// Review Table
+		reviewTableModel = new DefaultTableModel(new Object[]{"리뷰 ID", "사용자", "평점", "후기", "작성일자"}, 0) {
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				return false;
+			}
+		};
+		reviewTable = new JTable(reviewTableModel);
+		reviewPanel.add(new JScrollPane(reviewTable), BorderLayout.CENTER);
 
 		// Button Panel
-		ButtonPanel buttonPanel = new ButtonPanel(this);
+		ReviewPanel buttonPanel = new ReviewPanel(this);
 
-		setLayout(new BorderLayout());
-		add(searchPanel, BorderLayout.NORTH);
-		add(new JScrollPane(table), BorderLayout.CENTER);
+		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, moviePanel, reviewPanel);
+		splitPane.setResizeWeight(0.2);
+		splitPane.setDividerLocation(0.2);
+
+		add(splitPane, BorderLayout.CENTER);
 		add(buttonPanel, BorderLayout.SOUTH);
 	}
 
 	private void addEventListeners() {
-		table.addMouseListener(new MouseAdapter() {
+		reviewTable.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2) {
-					int selectRow = table.getSelectedRow();
-					int movieId = (int)tableModel.getValueAt(selectRow, 0);
-					showMovieDetail(movieId);
+					int selectRow = reviewTable.getSelectedRow();
+
+					if (selectRow >= 0) {
+						EditReviewDialog editReviewDialog = new EditReviewDialog(MovieFrame.this, reviewTableModel, selectRow);
+						editReviewDialog.setVisible(true);
+					}
 				}
 			}
 		});
 	}
 
-	public void showSignupDialog() {
-		final SignupDialog signupDialog = new SignupDialog(this, this.tableModel);
-		signupDialog.setVisible(true);
-	}
 
-	public void showSearchMovies(final String keyword) {
-		if (!keyword.isBlank()) {
-			searchMovies(keyword);
-		}
-	}
-
-	public void showRegisterMovieDialog() {
-		final RegisterMovieDialog movieDialog = new RegisterMovieDialog(this, this.tableModel);
-		movieDialog.setVisible(true);
-	}
-
-	public void showEditMovieDialog() {
-		final int selectRow = table.getSelectedRow();
+	public void showWriteReviewDialog() {
+		final int selectRow = movieTable.getSelectedRow();
 
 		if (selectRow >= 0) {
-			final EditMovieDialog editDialog = new EditMovieDialog(this, this.tableModel, selectRow);
-			editDialog.setVisible(true);
+			final int movieId = (int) movieTableModel.getValueAt(selectRow, 0);
+			final WriteReviewDialog reviewDialog = new WriteReviewDialog(this, reviewTableModel, movieId);
+
+			reviewDialog.setVisible(true);
 		} else {
 			JOptionPane.showMessageDialog(this, "영화를 선택하세요.");
 		}
 	}
 
-	public void signup(final User user) {
-		final int ret = userDao.signup(user);
+	public void showEditReviewDialog() {
+		final int selectRow = reviewTable.getSelectedRow();
 
-		if (ret == 1) {
-			movieList();
-		}
-	}
+		if (selectRow >= 0) {
+			final int reviewId = (int) reviewTableModel.getValueAt(selectRow, 0);
+			final EditReviewDialog reviewDialog = new EditReviewDialog(this, reviewTableModel, reviewId);
 
-	public void registerMovie(final Movie movie) {
-		final int ret = movieDao.registerMovie(movie);
-
-		if (ret == 1) {
-			movieList();
-		}
-	}
-
-	public void updateMovie(final Movie movie) {
-		final int ret = movieDao.updateMovie(movie);
-
-		if (ret == 1) {
-			movieList();
-		}
-	}
-
-	public void deleteMovie(int movieId) {
-		final int ret = movieDao.deleteMovie(movieId);
-
-		if (ret == 1) {
-			movieList();
-		}
-	}
-
-	private void clearTable() {
-		tableModel.setRowCount(0);
-	}
-
-	public void movieList() {
-		clearTable();
-
-		final List<Movie> movies = movieDao.movieList();
-
-		for (Movie movie : movies) {
-			tableModel.addRow(new Object[]{movie.getId(), movie.getTitle(), movie.getGenre(), movie.getDirector(), movie.getReleaseYear()});
-		}
-	}
-
-	public void searchMovies(final String keyword) {
-		clearTable();
-
-		final List<Movie> movies = movieDao.searchMovie(keyword);
-
-		for (Movie movie : movies) {
-			tableModel.addRow(new Object[]{movie.getId(), movie.getTitle(), movie.getGenre(), movie.getDirector(), movie.getReleaseYear()});
+			reviewDialog.setVisible(true);
+		} else {
+			JOptionPane.showMessageDialog(this, "리뷰를 선택하세요.");
 		}
 	}
 
 	public void showMovieDetail(final int movieId) {
-		final Movie movie = movieDao.findMovieById(movieId);
-		final List<Review> reviews = reviewDao.findReviewsByMovieId(movieId);
+		final Movie movie = movieDao.movieDetail(movieId);
 
-		new MovieDetailDialog(this, movie, reviews).setVisible(true);
-	}
+		if (movie != null) {
+			movieTableModel.setRowCount(0);
+			movieTableModel.addRow(new Object[]{
+				movie.getId(),
+				movie.getTitle(),
+				movie.getGenre().toString(),
+				movie.getDirector(),
+				movie.getReleaseYear()
+			});
 
-	public void writeReview(final Review review) {
-		final int ret = reviewDao.writeReview(review);
-
-		if (ret == 1) {
-			movieList();
+			showReviewsByMovieId(movieId);
 		}
 	}
 
-	public User findUserById(final int id) {
-		return userDao.findUserById(id);
+	public void showReviewsByMovieId(final int movieId) {
+		List<Review> reviews = reviewDao.findReviewsByMovieId(movieId);
+
+		reviewTableModel.setRowCount(0);
+
+		if (reviews == null || reviews.isEmpty()) {
+			reviewTableModel.addRow(new Object[]{"", "", "", "아직 리뷰가 존재하지 않습니다.", ""});
+		} else {
+			for (Review review : reviews) {
+				reviewTableModel.addRow(new Object[]{
+					review.getId(),
+					review.getUser().getUsername(),
+					review.getRating(),
+					review.getComment(),
+					review.getCreatedAt()
+				});
+			}
+		}
+	}
+
+	public void writeReview(final Review review, final String email, final int movieId) {
+		final User user = userDao.findUserByEmail(email);
+		final Movie movie = movieDao.movieDetail(movieId);
+
+		if (user == null) {
+			JOptionPane.showMessageDialog(this, "회원만 작성할 수 있습니다.");
+		} else {
+			review.setUser(user);
+			review.setMovie(movie);
+
+			final int ret = reviewDao.writeReview(review);
+
+			if (ret == 1) {
+				showReviewsByMovieId(review.getMovie().getId());
+			}
+		}
+	}
+
+	public void updateReview(final Review review) {
+		final int ret = reviewDao.updateReview(review);
+
+		// TODO: 비밀번호 일치 확인 필요
+
+		if (ret == 1) {
+			showReviewsByMovieId(review.getMovie().getId());
+		}
+	}
+
+	public void deleteReview(final int reviewId) {
+		final int ret = reviewDao.deleteReview(reviewId);
+
+		if (ret == 1) {
+			showReviewsByMovieId(reviewId);
+		}
+	}
+
+	public Review reviewDetail(final int reviewId) {
+		return reviewDao.reviewDetail(reviewId);
 	}
 }
