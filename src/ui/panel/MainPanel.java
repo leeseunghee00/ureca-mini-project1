@@ -4,11 +4,14 @@ import java.awt.*;
 
 import javax.swing.*;
 
-import ui.MovieFrame;
+import ui.frame.MainFrame;
 
-public class ButtonPanel extends JPanel {
+/**
+ * 메인화면 버튼
+ */
+public class MainPanel extends JPanel {
 
-	public ButtonPanel(final MovieFrame frame) {
+	public MainPanel(final MainFrame frame) {
 		setLayout(new FlowLayout());
 
 		final JButton signupButton = new JButton("회원가입");

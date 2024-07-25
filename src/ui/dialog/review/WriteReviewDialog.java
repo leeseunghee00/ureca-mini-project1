@@ -1,68 +1,65 @@
 package ui.dialog.review;
 
 import java.awt.*;
-import java.util.Date;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 
-import entity.Movie;
 import entity.Review;
-import entity.User;
-import ui.MovieFrame;
+import ui.frame.MovieFrame;
 
 public class WriteReviewDialog extends JDialog {
-	private JTextField userField, commentField, ratingField;
+	private JTextField userField, commentField;
+	private JSlider ratingField;
 	private JButton writeButton;
-	private Movie movie;
-	private MovieFrame parentFrame;
 
-	public WriteReviewDialog(MovieFrame frame, Movie movie) {
-		super(frame, "리뷰를 작성하세요", true);
-		this.movie = movie;
-		this.parentFrame = frame;
-
-		setTitle("리뷰를 작성하세요");
-		setSize(300, 300);
+	/**
+	 * 리뷰 작성 완료
+	 */
+	public WriteReviewDialog(
+		final MovieFrame frame,
+		final DefaultTableModel tableModel,
+		final int movieId
+	) {
+		setTitle("✅리뷰를 작성하세요");
+		setSize(400, 400);
 		setLayout(new BorderLayout());
 		setLocationRelativeTo(null);
 
-		JPanel inputPanel = new JPanel();
+		final JPanel inputPanel = new JPanel();
 		inputPanel.setLayout(new GridLayout(4, 2));
 
 		userField = new JTextField();
+		ratingField = new JSlider(1, 5, 1);
+		ratingField.setMajorTickSpacing(1);
+		ratingField.setPaintTicks(true);
+		ratingField.setPaintLabels(true);
 		commentField = new JTextField();
-		ratingField = new JTextField();
 
-		inputPanel.add(new JLabel("User Id"));
+		inputPanel.add(new JLabel("사용자 이메일"));
 		inputPanel.add(userField);
-		inputPanel.add(new JLabel("Comment"));
-		inputPanel.add(commentField);
-		inputPanel.add(new JLabel("Rating"));
+		inputPanel.add(new JLabel("평점 (5점만점)"));
 		inputPanel.add(ratingField);
+		inputPanel.add(new JLabel("후기"));
+		inputPanel.add(commentField);
 
-		JPanel buttonPanel = new JPanel();
-		writeButton = new JButton("작성");
-
-		writeButton.addActionListener(e -> {
-			final int userId = Integer.parseInt(userField.getText());
-			final String comment = commentField.getText();
-			final int rating = Integer.parseInt(ratingField.getText());
-
-			User user = parentFrame.findUserById(userId);
-
-			if (user == null) {
-				JOptionPane.showMessageDialog(this, "회원가입을 해주세요", "Error", JOptionPane.ERROR_MESSAGE);
-			} else {
-				Review review = new Review(comment, rating, user, movie, new Date());
-				parentFrame.writeReview(review);
-
-				dispose();
-			}
-		});
-
+		final JPanel buttonPanel = new JPanel();
+		writeButton = new JButton("리뷰 작성");
 		buttonPanel.add(writeButton);
 
 		add(inputPanel, BorderLayout.CENTER);
 		add(buttonPanel, BorderLayout.SOUTH);
+
+		writeButton.addActionListener(e -> {
+			final String email = userField.getText();
+			final int rating = ratingField.getValue();
+			final String comment = commentField.getText();
+
+			final Review review = new Review(comment, rating);
+
+			frame.writeReview(review, email, movieId);
+
+			dispose();
+		});
 	}
 }

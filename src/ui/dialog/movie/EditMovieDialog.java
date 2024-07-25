@@ -7,7 +7,7 @@ import javax.swing.table.DefaultTableModel;
 
 import entity.Genre;
 import entity.Movie;
-import ui.MovieFrame;
+import ui.frame.MainFrame;
 
 public class EditMovieDialog extends JDialog {
 
@@ -15,13 +15,17 @@ public class EditMovieDialog extends JDialog {
 	private static JComboBox<Genre> genreField;
 	private static JButton updateButton, deleteButton;
 
-	public EditMovieDialog(MovieFrame frame, DefaultTableModel tableModel, int selectRow) {
-		setTitle("영화를 수정/삭제하세요.");
+	public EditMovieDialog(
+		final MainFrame frame,
+		final DefaultTableModel tableModel,
+		final int selectRow
+	) {
+		setTitle("✅영화를 수정/삭제하세요.");
 		setSize(300, 300);
 		setLayout(new BorderLayout());
 		setLocationRelativeTo(null);
 
-		JPanel inputPanel = new JPanel();
+		final JPanel inputPanel = new JPanel();
 		inputPanel.setLayout(new GridLayout(10, 3));
 
 		movieIdField = new JTextField(tableModel.getValueAt(selectRow, 0).toString());
@@ -45,8 +49,7 @@ public class EditMovieDialog extends JDialog {
 		inputPanel.add(new JLabel("개봉연도"));
 		inputPanel.add(releaseYearField);
 
-		JPanel buttonPanel = new JPanel();
-
+		final JPanel buttonPanel = new JPanel();
 		updateButton = new JButton("수정");
 		deleteButton = new JButton("삭제");
 
@@ -63,15 +66,14 @@ public class EditMovieDialog extends JDialog {
 			final String director = directorField.getText();
 			final int releaseYear = Integer.parseInt(releaseYearField.getText());
 
-			Movie movie = new Movie(movieId, title, genre, director, releaseYear);
-
+			final Movie movie = new Movie(movieId, title, genre, director, releaseYear);
 			frame.updateMovie(movie);
 
 			dispose();
 		});
 
 		deleteButton.addActionListener(e -> {
-			int ret = JOptionPane.showConfirmDialog(this, "삭제할까요?", "삭제 확인 메시지", JOptionPane.YES_NO_OPTION);
+			final int ret = JOptionPane.showConfirmDialog(this, "삭제할까요?", "삭제 확인 메시지", JOptionPane.YES_NO_OPTION);
 
 			if( ret == JOptionPane.YES_OPTION ) {
 				final int movieId = Integer.parseInt(movieIdField.getText());

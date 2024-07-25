@@ -8,7 +8,7 @@ import javax.swing.table.DefaultTableModel;
 import entity.Genre;
 import entity.Manager;
 import entity.Movie;
-import ui.MovieFrame;
+import ui.frame.MainFrame;
 
 public class RegisterMovieDialog extends JDialog {
 
@@ -16,13 +16,13 @@ public class RegisterMovieDialog extends JDialog {
 	private static JComboBox<Genre> genreField;
 	private static JButton registerButton;
 
-	public RegisterMovieDialog(MovieFrame frame, DefaultTableModel tableModel) {
-		setTitle("영화를 추가하세요");
+	public RegisterMovieDialog(final MainFrame frame, final DefaultTableModel tableModel) {
+		setTitle("✅영화를 추가하세요");
 		setSize(300, 300);
 		setLayout(new BorderLayout());
 		setLocationRelativeTo(null);
 
-		JPanel inputPanel = new JPanel();
+		final JPanel inputPanel = new JPanel();
 		inputPanel.setLayout(new GridLayout(10, 3));
 
 		movieIdField = new JTextField();
@@ -45,10 +45,8 @@ public class RegisterMovieDialog extends JDialog {
 		inputPanel.add(new JLabel("Release Year"));
 		inputPanel.add(releaseYearField);
 
-		JPanel buttonPanel = new JPanel();
-
+		final JPanel buttonPanel = new JPanel();
 		registerButton = new JButton("등록");
-
 		buttonPanel.add(registerButton);
 
 		add(inputPanel, BorderLayout.CENTER);
@@ -62,10 +60,10 @@ public class RegisterMovieDialog extends JDialog {
 			final String director = directorField.getText();
 			final int releaseYear = Integer.parseInt(releaseYearField.getText());
 
-			Manager manager = new Manager();
+			final Manager manager = new Manager();
 			manager.setId(managerId);
 
-			Movie movie = new Movie(movieId, title, genre, director, releaseYear, manager);
+			final Movie movie = new Movie(movieId, title, genre, director, releaseYear, manager);
 
 			frame.registerMovie(movie);
 

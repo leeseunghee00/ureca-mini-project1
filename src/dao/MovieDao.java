@@ -1,6 +1,5 @@
 package dao;
 
-import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,15 +10,13 @@ import entity.Movie;
 
 public class MovieDao {
 
-	private static PreparedStatement pstmt;
-
 	/**
 	 * 영화 등록
 	 */
 	public int registerMovie(final Movie movie) {
 		final String query = "INSERT INTO Movie (manager_id, title, genre, director, release_year) VALUES (?, ?, ?, ?, ?); ";
 
-		return DBUtils.executeUpdate(query, (s) -> {
+		return DBUtils.executeUpdate(query, (pstmt) -> {
 			pstmt.setString(1, movie.getManager().getId());
 			pstmt.setString(2, movie.getTitle());
 			pstmt.setString(3, movie.getGenre().toString());
@@ -34,7 +31,7 @@ public class MovieDao {
 	public int updateMovie(final Movie movie) {
 		final String query = "UPDATE Movie SET title = ?, genre = ?, director = ?, release_year = ? WHERE id = ?; ";
 
-		return DBUtils.executeUpdate(query, (s) -> {
+		return DBUtils.executeUpdate(query, (pstmt) -> {
 			pstmt.setString(1, movie.getTitle());
 			pstmt.setString(2, movie.getGenre().toString());
 			pstmt.setString(3, movie.getDirector());
@@ -49,7 +46,7 @@ public class MovieDao {
 	public int deleteMovie(final int movieId) {
 		final String query = "DELETE FROM Movie WHERE id = ?; ";
 
-		return DBUtils.executeUpdate(query, (s) -> {
+		return DBUtils.executeUpdate(query, (pstmt) -> {
 			pstmt.setInt(1, movieId);
 		});
 	}
@@ -63,26 +60,20 @@ public class MovieDao {
 							+ "JOIN Manager mgr ON m.manager_id = mgr.id "
 							+ "ORDER BY m.release_year DESC;";
 
-		return DBUtils.executeQuery(
+		return DBUtils.executeQueryList(
 			query,
 			rs -> {
-				final List<Movie> movies = new ArrayList<>();
+				final Movie movie = new Movie();
+				final Manager manager = new Manager();
 
-				while (rs.next()) {
-					final Movie movie = new Movie();
-					final Manager manager = new Manager();
+				movie.setId(rs.getInt("id"));
+				movie.setTitle(rs.getString("title"));
+				movie.setGenre(Genre.valueOf(rs.getString("genre")));
+				movie.setDirector(rs.getString("director"));
+				movie.setReleaseYear(rs.getInt("release_year"));
+				movie.setManager(manager);
 
-					movie.setId(rs.getInt("id"));
-					movie.setTitle(rs.getString("title"));
-					movie.setGenre(Genre.valueOf(rs.getString("genre")));
-					movie.setDirector(rs.getString("director"));
-					movie.setReleaseYear(rs.getInt("release_year"));
-					movie.setManager(manager);
-
-					movies.add(movie);
-				}
-
-				return movies;
+				return movie;
 			}
 		);
 	}
@@ -100,8 +91,8 @@ public class MovieDao {
 			query,
 			pstmt -> pstmt.setString(1, "%" + keyword + "%"),
 			rs -> {
-				final List<Movie> movies = new ArrayList<>();
 				final Movie movie = new Movie();
+				final List<Movie> movies = new ArrayList<>();
 
 				movie.setId(rs.getInt("id"));
 				movie.setTitle(rs.getString("title"));
@@ -117,9 +108,9 @@ public class MovieDao {
 	}
 
 	/**
-	 * 영화ID 로 영화 조회
+	 * 영화 상세 조회
 	 */
-	public Movie findMovieById(final int movieId) {
+	public Movie movieDetail(final int movieId) {
 		final String query = "SELECT * FROM Movie WHERE id = ?; ";
 
 		return DBUtils.executeQuery(

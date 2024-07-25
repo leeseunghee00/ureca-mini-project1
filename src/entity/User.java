@@ -16,14 +16,13 @@ public class User {
 		final int id,
 		final String username,
 		final String email,
-		final String password,
-		final Date createdAt
+		final String password
 	) {
 		this.id = id;
 		this.username = username;
 		this.email = email;
 		this.password = password;
-		this.createdAt = createdAt;
+		this.createdAt = new Date();
 	}
 
 	public int getId() {

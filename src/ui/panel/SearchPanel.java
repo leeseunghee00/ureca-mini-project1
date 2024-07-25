@@ -4,14 +4,17 @@ import java.awt.*;
 
 import javax.swing.*;
 
-import ui.MovieFrame;
+import ui.frame.MainFrame;
 
+/**
+ * 검색 버튼
+ */
 public class SearchPanel extends JPanel {
 
 	private static final JTextField searchField = new JTextField();
 	private static JButton searchButton;
 
-	public SearchPanel(final MovieFrame frame) {
+	public SearchPanel(final MainFrame frame) {
 		setLayout(new FlowLayout());
 
 		final Dimension textFieldSize = new Dimension(400, 28);

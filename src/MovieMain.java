@@ -1,11 +1,11 @@
 import javax.swing.*;
 
-import ui.MovieFrame;
+import ui.frame.MainFrame;
 
 public class MovieMain {
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(() -> {
-			new MovieFrame().setVisible(true);
+			new MainFrame().setVisible(true);
 		});
 	}
 }

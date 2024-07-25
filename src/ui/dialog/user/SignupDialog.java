@@ -1,25 +1,24 @@
 package ui.dialog.user;
 
 import java.awt.*;
-import java.util.Date;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
 import entity.User;
-import ui.MovieFrame;
+import ui.frame.MainFrame;
 
 public class SignupDialog extends JDialog {
 	private JTextField userIdField, usernameField, emailField, passwordField;
 	private JButton signupButton;
 
-	public SignupDialog(MovieFrame frame, DefaultTableModel tableModel) {
+	public SignupDialog(MainFrame frame, DefaultTableModel tableModel) {
 		setTitle("🎉 회원가입을 환영합니다. 🎉");
 		setSize(300, 300);
 		setLayout(new BorderLayout());
 		setLocationRelativeTo(null);
 
-		JPanel inputPanel = new JPanel();
+		final JPanel inputPanel = new JPanel();
 		inputPanel.setLayout(new GridLayout(5, 3));
 
 		userIdField = new JTextField();
@@ -36,7 +35,7 @@ public class SignupDialog extends JDialog {
 		inputPanel.add(new JLabel("Password"));
 		inputPanel.add(passwordField);
 
-		JPanel buttonPanel = new JPanel();
+		final JPanel buttonPanel = new JPanel();
 		signupButton = new JButton("가입하기");
 		buttonPanel.add(signupButton);
 
@@ -49,16 +48,12 @@ public class SignupDialog extends JDialog {
 			final String email = emailField.getText();
 			final String password = passwordField.getText();
 
-			User user = null;
-
-			if (frame.findUserById(userId) != null) {
+			if (frame.findUserByEmail(email) != null) {
 				JOptionPane.showMessageDialog(this, "이미 존재하는 사용자입니다.", "Error", JOptionPane.ERROR_MESSAGE);
 			} else {
-				user = new User(userId, username, email, password, new Date());
-
+				final User user = new User(userId, username, email, password);
+				frame.signup(user);
 			}
-
-			frame.signup(user);
 
 			dispose();
 		});

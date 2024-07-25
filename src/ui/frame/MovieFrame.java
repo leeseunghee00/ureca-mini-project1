@@ -1,4 +1,4 @@
-package ui;
+package ui.frame;
 
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -90,17 +90,21 @@ public class MovieFrame extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2) {
-					int selectRow = reviewTable.getSelectedRow();
+					final int selectRow = reviewTable.getSelectedRow();
 
 					if (selectRow >= 0) {
-						EditReviewDialog editReviewDialog = new EditReviewDialog(MovieFrame.this, reviewTableModel, selectRow);
+						final int reviewId = (int) reviewTableModel.getValueAt(selectRow, 0);
+						final Review review = reviewDao.reviewDetail(reviewId);
+
+						final EditReviewDialog editReviewDialog = new EditReviewDialog(MovieFrame.this, reviewTableModel, review);
+
 						editReviewDialog.setVisible(true);
+
 					}
 				}
 			}
 		});
 	}
-
 
 	public void showWriteReviewDialog() {
 		final int selectRow = movieTable.getSelectedRow();
@@ -110,6 +114,7 @@ public class MovieFrame extends JFrame {
 			final WriteReviewDialog reviewDialog = new WriteReviewDialog(this, reviewTableModel, movieId);
 
 			reviewDialog.setVisible(true);
+
 		} else {
 			JOptionPane.showMessageDialog(this, "영화를 선택하세요.");
 		}
@@ -120,9 +125,12 @@ public class MovieFrame extends JFrame {
 
 		if (selectRow >= 0) {
 			final int reviewId = (int) reviewTableModel.getValueAt(selectRow, 0);
-			final EditReviewDialog reviewDialog = new EditReviewDialog(this, reviewTableModel, reviewId);
+			final Review review = reviewDao.reviewDetail(reviewId);
+
+			final EditReviewDialog reviewDialog = new EditReviewDialog(this, reviewTableModel, review);
 
 			reviewDialog.setVisible(true);
+
 		} else {
 			JOptionPane.showMessageDialog(this, "리뷰를 선택하세요.");
 		}
@@ -141,19 +149,19 @@ public class MovieFrame extends JFrame {
 				movie.getReleaseYear()
 			});
 
-			showReviewsByMovieId(movieId);
+			showMovieReviews(movieId);
 		}
 	}
 
-	public void showReviewsByMovieId(final int movieId) {
-		List<Review> reviews = reviewDao.findReviewsByMovieId(movieId);
+	public void showMovieReviews(final int movieId) {
+		final List<Review> reviews = reviewDao.getMovieReviews(movieId);
 
 		reviewTableModel.setRowCount(0);
 
 		if (reviews == null || reviews.isEmpty()) {
 			reviewTableModel.addRow(new Object[]{"", "", "", "아직 리뷰가 존재하지 않습니다.", ""});
 		} else {
-			for (Review review : reviews) {
+			for (final Review review : reviews) {
 				reviewTableModel.addRow(new Object[]{
 					review.getId(),
 					review.getUser().getUsername(),
@@ -178,7 +186,7 @@ public class MovieFrame extends JFrame {
 			final int ret = reviewDao.writeReview(review);
 
 			if (ret == 1) {
-				showReviewsByMovieId(review.getMovie().getId());
+				showMovieReviews(review.getMovie().getId());
 			}
 		}
 	}
@@ -189,19 +197,15 @@ public class MovieFrame extends JFrame {
 		// TODO: 비밀번호 일치 확인 필요
 
 		if (ret == 1) {
-			showReviewsByMovieId(review.getMovie().getId());
+			showMovieReviews(review.getMovie().getId());
 		}
 	}
 
-	public void deleteReview(final int reviewId) {
-		final int ret = reviewDao.deleteReview(reviewId);
+	public void deleteReview(final Review review) {
+		final int ret = reviewDao.deleteReview(review.getId());
 
 		if (ret == 1) {
-			showReviewsByMovieId(reviewId);
+			showMovieReviews(review.getMovie().getId());
 		}
-	}
-
-	public Review reviewDetail(final int reviewId) {
-		return reviewDao.reviewDetail(reviewId);
 	}
 }

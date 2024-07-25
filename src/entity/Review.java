@@ -14,17 +14,23 @@ public class Review {
 	public Review() {}
 
 	public Review(
+		final int id,
 		final String comment,
 		final int rating,
 		final User user,
-		final Movie movie,
-		final Date createdAt
+		final Movie movie
 	) {
+		this.id = id;
 		this.comment = comment;
 		this.rating = rating;
 		this.user = user;
 		this.movie = movie;
-		this.createdAt = createdAt;
+	}
+
+	public Review(final String comment, final int rating) {
+		this.comment = comment;
+		this.rating = rating;
+		this.createdAt = new Date();
 	}
 
 	public int getId() {
