@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DBUtils {
 
@@ -50,16 +52,38 @@ public class DBUtils {
 		return result;
 	}
 
-	public static <T> T executeQuery(String query, SQLFunction<T, ResultSet> rsMapper) {
-		T result = null;
+	public static <T> List<T> executeQueryList(String query, SQLFunction<T, ResultSet> rsMapper) {
+		List<T> result = new ArrayList<>();
 
 		try	{
 			conn = DBManager.getConnection();
 			pstmt = conn.prepareStatement(query);
 			rs = pstmt.executeQuery();
 
-			if (rs.next()) {
-				result = rsMapper.apply(rs);
+			while (rs.next()) {
+				result.add(rsMapper.apply(rs));
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			DBManager.releaseConnection(rs, pstmt, conn);
+		}
+
+		return result;
+	}
+
+	public static <T> List<T> executeQueryList(String query, SQLConsumer<PreparedStatement> sqlConsumer, SQLFunction<T, ResultSet> rsMapper) {
+		List<T> result = new ArrayList<>();
+
+		try {
+			conn = DBManager.getConnection();
+			pstmt = conn.prepareStatement(query);
+			sqlConsumer.accept(pstmt);
+			rs = pstmt.executeQuery();
+
+			while (rs.next()) {
+				result.add(rsMapper.apply(rs));
 			}
 
 		} catch (SQLException e) {
